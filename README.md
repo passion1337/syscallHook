@@ -109,7 +109,7 @@ if(v17 == 2)
 if(v17 == 1) v18 = KeQueryPerformanceCounter(0i64);
 if(!v17) v18 = RtlGetSystemTimePrecise(); 
 ``` 
-위에서 언급한 ( ClientContext==3일때, CpuCycle을 사용한다고 언급 ) 사실과 일치합니다. 함수포인터를 대입했을 때 일어났던 bsod도 이것 때문이었군요.
+위에서 언급한 ( ClientContext==3일때, CpuCycle을 사용한다고 언급 ) 사실과 일치합니다. 함수포인터를 대입했을 때 일어났던 bsod도 이것 때문이었습니다.
 - 만약 v17==2일때 사용되는 off_140C009E0의 포인터가 pg를 트리거 하지 않는다면 이를 하이재킹해도 될거같습니다. 
 - 또 v17==1(KeQueryPerformanceCounter)일 때도 공략할 포인트가 존재합니다. 
 
