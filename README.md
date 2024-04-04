@@ -118,9 +118,7 @@ v2 = HalpPerformanceCounter;
 v9 = (*(__int64 (__fastcall **)(__int64))(v2 + 0x70))(v8); 
 ``` 
 KeQueryPerformanceCounter 함수 안에서 이런식으로 v2 + 0x70 으로 함수포인터를 사용하는 것이 보입니다.   
-이제 후킹 함수를 작성할 차례인데, 어떻게 할지 숨이 턱 막힙니다. 도대체 어떻게 ? 
-
-IH는 이 말도 안되는 일을 스택워킹 + PerfInfoLogSysCallEntry 이후의 호출 특성을 이용해 해결합니다.   
+이제 후킹 함수를 작성할 차례인데,  IH는 이 말도 안되는 일을 스택워킹 + PerfInfoLogSysCallEntry 이후의 호출 특성을 이용해 해결합니다.   
 PerfInfoLogSysCallEntry에서 아래 함수를 호출합니다. 두개의 상수가 보이시나요 ? 
 ```c
 EtwTraceSiloKernelEvent(ThreadServerSilo, (int)someArray, 1, 0x40000040u, 0xF33, 0x501802); 
