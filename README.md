@@ -2,7 +2,7 @@
 
 ### Infinity Hook ( 이하 IH 라 칭하겠습니다. )
 "Hook system calls, context switches, page faults, DPCs and more."   
-위 마법은 후킹은 어떻게 이루어지는지 알아보겠습니다. 그 전에, 먼저 Etw에 대해 간단하게 알아봅시다.   
+위 후킹은 어떻게 이루어지는지 알아보겠습니다. 그 전에, 먼저 Etw에 대해 간단하게 알아봅시다.   
 Etw(Event-Trace-Windows)는 윈도우에서 발생하는 모든 이벤트를 추적하고 기록할 수 있게 해줍니다. 
 
 usermode syscall -> KiSystemCall64(or KiSystemCall64Shadow) -> PerfInfoLogSysCallEntry -> EtwTraceSiloKernelEvent -> EtwpLogKernelEvent -> and more ...
