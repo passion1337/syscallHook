@@ -1,16 +1,14 @@
 ### Syscall Hooking 
 
 ### Infinity Hook ( 이하 IH 라 칭하겠습니다. )
-"Hook system calls, context switches, page faults, DPCs and more." 
-이 마법은 후킹은 어떻게 이루어지는지 알아봅시다.   
-그 전에, 먼저 Etw에 대해 간단하게 알아보겠습니다. 
+"Hook system calls, context switches, page faults, DPCs and more."   
+위 마법은 후킹은 어떻게 이루어지는지 알아보겠습니다. 그 전에, 먼저 Etw에 대해 간단하게 알아봅시다.   
 Etw(Event-Trace-Windows)는 윈도우에서 발생하는 모든 이벤트를 추적하고 기록할 수 있게 해줍니다. 
 
-usermode syscall -> KiSystemCall64(or KiSystemCall64Shadow) -> PerfInfoLogSysCallEntry -> EtwTraceSiloKernelEvent -> EtwpLogKernelEvent ... 
-위 같은 흐름속에서 IH의 마법이 이루어집니다. 
+usermode syscall -> KiSystemCall64(or KiSystemCall64Shadow) -> PerfInfoLogSysCallEntry -> EtwTraceSiloKernelEvent -> EtwpLogKernelEvent -> and more ...
 
-PerfInfoLogSysCallEntry을 잠깐 살펴봅시다. 
-아래 함수를 잘 기억해두세요. 
+PerfInfoLogSysCallEntry가 호출되는 부분을 잠깐 살펴봅시다.    
+아래 함수(KiSystemCall64 함수의 끝 부분)를 잘 기억해두세요. 
 ![PerfInfoLogSyscallEntry](https://github.com/passion1337/syscallHook/assets/162768394/5339ba9a-d1f4-4b17-a61f-7799759bf173)
    
 ms  공식 문서(https://learn.microsoft.com/ko-kr/windows/win32/etw/wnode-header)
@@ -41,7 +39,7 @@ struct _WMI_LOGGER_CONTEXT
 	...
 } 
 ``` 
-offset 0x28에 들어있는 function pointer가 보이시나요 ? IH는 이 함수포인터를 Hijacking 합니다. 아마 ClientContext 값에 종속적이게 위 함수 포인터가 설정됐을 걸로 예상할 수 있습니다. 하지만 아쉽게도 ms는 2004 이후로 위 멤버를 함수포인터가 아니라 Flag로 바꿔버렸습니다.
+offset 0x28에 들어있는 function pointer가 보이시나요 ? IH는 이 함수포인터를 Hijacking 합니다. 아마 ClientContext 값에 종속적이게 위 함수 포인터가 설정됐을 걸로 예상할 수 있습니다. 하지만 아쉽게도 IH가 출시된 이후에 얼마되지 않아서 위 멤버를 함수포인터가 아니라 Flag로 바꿔버렸습니다.
 
 ```c
 // after win10 2004
@@ -60,7 +58,6 @@ struct _WMI_LOGGER_CONTEXT
 }
 ``` 
 실제로 디버깅 해 보니 제 시스템에선 3이 들어가있었고, 함수포인터를 넣으니 bsod를 만났습니다. 
-
 타임스탬프는 EtwpReserveTraceBuffer 라는 함수 안에서 기록됩니다. EtwpReserveTraceBuffer를 Ida로 살펴보면 아래같은 코드가 나옵니다. 
 
 ```c
@@ -123,7 +120,7 @@ v9 = (*(__int64 (__fastcall **)(__int64))(v2 + 0x70))(v8);
 KeQueryPerformanceCounter 함수 안에서 이런식으로 v2 + 0x70 으로 함수포인터를 사용하는 것이 보입니다.   
 이제 후킹 함수를 작성할 차례인데, 어떻게 할지 숨이 턱 막힙니다. 도대체 어떻게 ? 
 
-IH는 이 말도 안되는 일을 스택워킹 + PerfInfoLogSysCallEntry 이후의 호출 특성을 이용해 이를 해결합니다.   
+IH는 이 말도 안되는 일을 스택워킹 + PerfInfoLogSysCallEntry 이후의 호출 특성을 이용해 해결합니다.   
 PerfInfoLogSysCallEntry에서 아래 함수를 호출합니다. 두개의 상수가 보이시나요 ? 
 ```c
 EtwTraceSiloKernelEvent(ThreadServerSilo, (int)someArray, 1, 0x40000040u, 0xF33, 0x501802); 
